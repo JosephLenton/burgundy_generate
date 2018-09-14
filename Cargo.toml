@@ -1,0 +1,15 @@
+[package]
+name = "burgundy_generate"
+version = "0.1.0"
+authors = ["joseph.lenton@askattest.com <joseph.lenton@askattest.com>"]
+edition = "2018"
+
+[dependencies]
+structopt = { version = "0.2.10", default-features = true }
+failure = "0.1.2"
+serde = "1.0.78"
+serde_derive = "1.0.27"
+toml = "0.4"
+regex = "1.0.5"
+Inflector = "0.11.3"
+
