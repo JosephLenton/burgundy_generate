@@ -8,6 +8,8 @@ use extern::toml::value::Value;
 use std::collections::HashMap;
 use std::io::Write;
 
+const BODY_VARIABLE_NAME : &'static str = "body";
+
 pub fn print(api: Api, writer: &mut OutputDestWriter) {
     let urls_map = get_urls_by_method(&api);
 
@@ -292,18 +294,34 @@ pub struct {type_name} {{
     }
 
     if let Some(url) = url.is_end_node {
+        let mut body_var_name : &str = &"";
+
         writeln!(out, "");
         if let Some(api_docs_url) = &url.api_docs_url {
             writeln!(out, "  /// See {}", api_docs_url);
         }
 
-        writeln!(
-            out,
-            r###"  pub fn run(self) -> burgundy::Result<{types_mod}{returns}> {{
-    self.path"###,
-            types_mod = types_mod,
-            returns = url.returns.as_ref().map(String::as_str).unwrap_or(&"()")
-        );
+        if let Some(body_var_type) = &url.body {
+            body_var_name = BODY_VARIABLE_NAME;
+
+            writeln!(
+                out,
+                r###"  pub fn run(self, {body_var_name}:{body_var_type}) -> burgundy::Result<{types_mod}{returns}> {{
+        self.path"###,
+                types_mod = types_mod,
+                body_var_name = body_var_name,
+                body_var_type = body_var_type,
+                returns = url.returns.as_ref().map(String::as_str).unwrap_or(&"()")
+            );
+        } else {
+            writeln!(
+                out,
+                r###"  pub fn run(self) -> burgundy::Result<{types_mod}{returns}> {{
+        self.path"###,
+                types_mod = types_mod,
+                returns = url.returns.as_ref().map(String::as_str).unwrap_or(&"()")
+            );
+        }
 
         if let Some(headers) = &url.header {
             for (param_name, param_value) in headers {
@@ -327,13 +345,25 @@ pub struct {type_name} {{
             }
         }
 
-        writeln!(
-            out,
-            r#"        .execute_as_json::<{types_mod}{returns}>()
-  }}"#,
-            types_mod = types_mod,
-            returns = url.returns.as_ref().map(String::as_str).unwrap_or(&"()")
-        );
+        if let Some(body_var_type) = &url.body {
+            writeln!(
+                out,
+                r#"        .execute_as_json::<{body_var_type}, {types_mod}{returns}>(Some(&{body_var_name}))
+    }}"#,
+                types_mod = types_mod,
+                body_var_type = body_var_type,
+                body_var_name = body_var_name,
+                returns = url.returns.as_ref().map(String::as_str).unwrap_or(&"()")
+            );
+        } else {
+            writeln!(
+                out,
+                r#"        .execute_as_json::<(), {types_mod}{returns}>(None)
+    }}"#,
+                types_mod = types_mod,
+                returns = url.returns.as_ref().map(String::as_str).unwrap_or(&"()")
+            );
+        }
     }
 
     writeln!(out, "}}");

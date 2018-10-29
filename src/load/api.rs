@@ -11,7 +11,6 @@ use std::io::Read;
 #[derive(Deserialize, Debug)]
 pub struct Api {
     pub domain: Domain,
-
     pub url: Vec<Url>,
 }
 
