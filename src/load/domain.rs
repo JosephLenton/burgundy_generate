@@ -14,5 +14,6 @@ pub struct Domain {
     pub query: Option<Table>,
     pub header: Option<Table>,
     pub types_mod: Option<String>,
-    pub extra_crates: Option<Vec<String>>,
+    pub extern_crates: Option<Vec<String>>,
+    pub lib_modules: Option<Vec<String>>,
 }

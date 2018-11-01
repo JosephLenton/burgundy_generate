@@ -38,11 +38,7 @@ impl Api {
 #[derive(Debug, Fail)]
 pub enum ApiError {
     /// This happens when we cannot read the file from disk.
-    #[fail(
-        display = "IO error whilst trying to read file {}\n{}",
-        file,
-        error
-    )]
+    #[fail(display = "IO error whilst trying to read file {}\n{}", file, error)]
     FailedToReadFile {
         #[cause]
         error: IOError,

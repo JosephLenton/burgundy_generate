@@ -8,7 +8,7 @@ use extern::toml::value::Value;
 use std::collections::HashMap;
 use std::io::Write;
 
-const BODY_VARIABLE_NAME : &'static str = "body";
+const BODY_VARIABLE_NAME: &'static str = "body";
 
 pub fn print(api: Api, writer: &mut OutputDestWriter) {
     let urls_map = get_urls_by_method(&api);
@@ -79,13 +79,23 @@ fn print_domain<'a>(
     writeln!(out, "extern crate serde;");
     writeln!(out, "#[macro_use]");
     writeln!(out, "extern crate serde_derive;");
-    domain.extra_crates.as_ref().and_then(|extra_crates| {
+    domain.extern_crates.as_ref().and_then(|extra_crates| {
         for extra_crate in extra_crates {
-            writeln!(out, "extern crate {};", extra_crate);
+            writeln!(out, "pub extern crate {};", extra_crate);
         }
 
         Some(())
     });
+    domain.lib_modules.as_ref().and_then(|lib_mods| {
+        for lib_mod in lib_mods {
+            writeln!(out, "pub mod {};", lib_mod);
+        }
+
+        Some(())
+    });
+
+    writeln!(out, "pub use burgundy::Result;");
+    writeln!(out, "pub use burgundy::Error;");
 
     for key in urls.keys() {
         let method_lower = key.as_str().to_lowercase();
@@ -234,7 +244,7 @@ fn print_end_point_client<'a>(
         let key_name = key.as_name().to_snake_case();
         let next_type_name = format!("{}_{}", type_name, key.as_name()).to_class_case();
 
-        writeln!(out, "mod {};", key_name);
+        writeln!(out, "pub mod {};", key_name);
         writeln!(out, "pub use self::{}::{};", key_name, next_type_name);
     }
 
@@ -294,7 +304,7 @@ pub struct {type_name} {{
     }
 
     if let Some(url) = url.is_end_node {
-        let mut body_var_name : &str = &"";
+        let mut body_var_name: &str = &"";
 
         writeln!(out, "");
         if let Some(api_docs_url) = &url.api_docs_url {
@@ -306,7 +316,7 @@ pub struct {type_name} {{
 
             writeln!(
                 out,
-                r###"  pub fn run(self, {body_var_name}:{body_var_type}) -> burgundy::Result<{types_mod}{returns}> {{
+                r###"  pub fn run(self, {body_var_name}:{body_var_type}) -> crate::Result<{types_mod}{returns}> {{
         self.path"###,
                 types_mod = types_mod,
                 body_var_name = body_var_name,
@@ -316,7 +326,7 @@ pub struct {type_name} {{
         } else {
             writeln!(
                 out,
-                r###"  pub fn run(self) -> burgundy::Result<{types_mod}{returns}> {{
+                r###"  pub fn run(self) -> crate::Result<{types_mod}{returns}> {{
         self.path"###,
                 types_mod = types_mod,
                 returns = url.returns.as_ref().map(String::as_str).unwrap_or(&"()")

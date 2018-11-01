@@ -9,13 +9,10 @@ use structopt::StructOpt;
 #[structopt(
     name = "Burgundy Generate",
     about = "For generating an API from a TOML file",
-    author = "",
+    author = ""
 )]
 crate struct Args {
-    #[structopt(
-        long = "out",
-        help = "The directory where this is outputted to"
-    )]
+    #[structopt(long = "out", help = "The directory where this is outputted to")]
     crate directory: Option<String>,
 
     #[structopt(help = "The file to generate the API from")]

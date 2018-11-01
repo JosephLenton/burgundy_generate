@@ -54,7 +54,8 @@ impl<'de> Visitor<'de> for UrlVisitor {
                         path: txt.to_string(),
                     }
                 }
-            }).collect();
+            })
+            .collect();
 
         Ok(UrlPath { parts })
     }
